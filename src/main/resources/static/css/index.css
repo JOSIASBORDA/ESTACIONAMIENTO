@@ -1,0 +1,43 @@
+/* Espaciado entre el título y el contenedor de los sitios */
+h2 {
+    margin-bottom: 20px; /* Espacio debajo del título */
+}
+
+/* Contenedor de los sitios */
+#sitios-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Diseño responsivo */
+    gap: 20px; /* Espaciado entre botones */
+    padding: 20px;
+    width: 100%;
+    justify-content: center;
+    margin-bottom: 30px; /* Espacio debajo de los botones de sitios */
+}
+
+/* Botón "Añadir nuevo Vehículo" */
+.btn-nuevo-vehiculo {
+    margin-bottom: 20px; /* Espacio debajo del botón (si hay algo más debajo) */
+    margin-top: 10px; /* Espacio arriba del botón */
+}
+
+/* Botones de los sitios */
+.sitio-btn {
+    font-size: 1.5rem;
+    font-weight: bold;
+    height: 150px;
+    border-radius: 10px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+    color: white;
+}
+
+/* Efecto hover para botones */
+.sitio-btn:hover {
+    transform: scale(1.05);
+    opacity: 0.9;
+}
+

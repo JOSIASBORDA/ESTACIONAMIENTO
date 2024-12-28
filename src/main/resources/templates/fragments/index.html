@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>Registro Vehículos</title>
+        <link th:href="@{/css/index.css}" rel="stylesheet">
+
+    </head>
+    <body>
+        <div th:fragment="content" class="container mt-4">
+            <h2>Registro de Vehículos</h2>
+            <div id="sitios-container">
+
+            </div>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <div class="d-flex align-items-center">
+                <!-- Botón "Añadir nuevo Vehículo" -->
+                <a th:href="@{/vehiculos/nuevo}" class="btn btn-primary me-5">
+                    Añadir nuevo Vehículo
+                </a>
+
+                <div class="flex-grow-1"></div>
+
+                <!-- Cuadro de búsqueda con tamaño controlado -->
+                <div class="input-group w-auto">
+                    <input id="searchInput" type="text" class="form-control" placeholder="Buscar Vehículo por Placa" aria-label="Buscar Vehículo">
+                </div>
+
+            </div>
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+
+            <!-- Modal para Registrar Pago -->
+            <div class="modal fade" id="registrarPagoModal" tabindex="-1" aria-labelledby="registrarPagoModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="registrarPagoModalLabel">Registrar Pago</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form id="registrarPagoForm">
+                            <div class="modal-body">
+                                <input type="hidden" id="idRegistro" name="idRegistro">
+                                <div class="mb-3">
+                                    <label for="monto" class="form-label">Monto</label>
+                                    <input type="number" step="0.01" class="form-control" id="monto" name="monto" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="idTipoPago" class="form-label">Tipo de Pago</label>
+                                    <select class="form-select" id="idTipoPago" name="idTipoPago" required>
+                                        <option th:each="tipoPago : ${tiposPago}" 
+                                                th:value="${tipoPago.id_Tipo_Pago}" 
+                                                th:text="${tipoPago.TipoPago}">
+                                        </option>
+
+                                    </select>
+
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="submit" class="btn btn-primary">Registrar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <table class="table table-striped">
+                <thead class="thead-light">
+                    <tr>
+                        <th>PLACA</th>
+                        <th>DESCRIPCIÓN DEL VEHÍCULO</th>
+                        <th>HORA ENTRADA</th>
+                        <th>HORA SALIDA</th>
+                        <th>TICKETS</th>
+                        <th>PAGOS</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaVehiculos">
+
+                    <!-- Recorremos la lista de vehículos -->
+                    <tr th:each="vehiculo : ${listavehiculos}">
+                        <td th:text="${vehiculo.vehiculo.placa}"></td> <!-- Placa del vehículo -->
+                        <td th:text="${vehiculo.descripcion}"></td>
+
+                        <!-- Usamos #temporals.format para formatear LocalDateTime -->
+                        <td th:text="${#temporals.format(vehiculo.fechaIngreso, 'dd-MM-yyyy HH:mm:ss')}"></td>
+
+                        <!-- Si la fecha de salida es nula, mostrar 'No disponible' -->
+                        <td>
+                            <span th:if="${vehiculo.fechaSalida != null}" th:text="${#temporals.format(vehiculo.fechaSalida, 'dd-MM-yyyy HH:mm:ss')}"></span>
+                            <form th:if="${vehiculo.fechaSalida == null}" th:action="@{/vehiculos/salida/{id}(id=${vehiculo.idRegistro})}" method="post">
+                                <input type="hidden" name="id" th:value="${vehiculo.idRegistro}">
+                                <input type="hidden" name="_method" value="PUT">
+                                <button type="submit" class="btn btn-danger">Registrar salida</button>
+                            </form>
+                        </td>
+
+
+                        <!-- Botón de TICKET ENTRADA -->
+                        <td>
+                            <div class="d-flex flex-column gap-2"> <!-- Contenedor vertical para los botones -->
+                                <!-- Botón de TICKET ENTRADA -->
+                                <a th:href="@{/imprimir-ticket-entrada/{id}(id=${vehiculo.idRegistro})}" 
+                                   class="btn btn-primary" 
+                                   target="_blank">
+                                    <i class="fa-solid fa-print" style="color: #ffffff;"></i> Entrada
+                                </a>
+
+                                <!-- Mostrar el botón de TICKET SALIDA solo si fechaSalida no es nulo -->
+                                <a th:if="${vehiculo.fechaSalida != null}" 
+                                   th:href="@{/imprimir-ticket-salida/{id}(id=${vehiculo.idRegistro})}" 
+                                   class="btn btn-warning" 
+                                   target="_blank">
+                                    <i class="fa-solid fa-print" style="color: #ffffff;"></i> Salida
+                                </a>
+                            </div>
+                        </td>
+
+                        <td>
+                            <button class="btn btn-success registrarPagoBtn" 
+                                    th:data-id-registro="${vehiculo.idRegistro}" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#registrarPagoModal">
+                                Registrar Pago
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+
+
+            <!-- Incluye jQuery -->
+            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+            <!-- Incluye el JS de Bootstrap -->
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+            <script>
+                $(document).ready(function () {
+                    // Función para obtener los sitios y actualizarlos en tiempo real
+                    function obtenerSitios() {
+                        // Llamada AJAX para obtener los datos desde el backend
+                        $.ajax({
+                            url: '/sitios/datos', // Endpoint para obtener los sitios
+                            method: 'GET',
+                            success: function (data) {
+                                console.log('Datos recibidos del backend:', data); // Verificar datos recibidos
+                                renderizarSitios(data); // Llama a la función para renderizar los sitios
+                            },
+                            error: function (error) {
+                                console.error('Error al obtener los datos del backend:', error); // Manejo de errores
+                            }
+                        });
+                    }
+
+                    // Función para renderizar los sitios como botones
+                    function renderizarSitios(sitios) {
+                        const contenedor = $('#sitios-container');
+                        contenedor.empty(); // Limpiar el contenedor antes de agregar los nuevos botones
+
+                        sitios.forEach(function (sitio) {
+                            const boton = $('<button></button>'); // Crear un botón
+
+                            boton.addClass('btn sitio-btn'); // Clases base para los botones
+                            boton.addClass(sitio.estado ? 'btn-success' : 'btn-danger'); // Clase según el estado (verde o rojo)
+
+                            // Asignar el texto al botón
+                            boton.text(`Sitio ${sitio.numeroSitio}`);
+
+                            // Añadir el botón al contenedor
+                            contenedor.append(boton);
+                        });
+                    }
+
+                    // Llamada inicial para obtener los sitios cuando la página se carga
+                    obtenerSitios();
+
+                    // Opcional: Configura intervalos para actualizar los sitios automáticamente
+                    // setInterval(obtenerSitios, 30000); // Cada 30 segundos
+                });
+                $(document).ready(function () {
+                    // Abrir el modal y configurar el idRegistro
+                    $('.registrarPagoBtn').on('click', function () {
+                        const idRegistro = $(this).data('id-registro');
+                        console.log("ID Registro seleccionado:", idRegistro); // Verificar el valor
+                        $('#idRegistro').val(idRegistro); // Asignar al campo oculto
+                    });
+
+
+                    // Enviar el formulario para registrar el pago
+                    $('#registrarPagoForm').on('submit', function (event) {
+                        event.preventDefault(); // Prevenir el envío tradicional del formulario
+
+
+
+                        const formData = $(this).serialize(); // Serializar los datos del formulario
+                        console.log("kljfd", formData);
+
+                        $.ajax({
+                            url: '/registrarpago',
+                            method: 'POST',
+                            data: formData,
+                            success: function (response) {
+                                alert('Pago registrado con éxito');
+                                $('#registrarPagoModal').modal('hide'); // Cerrar el modal
+                                location.reload(); // Recargar la página para reflejar cambios
+                            },
+                            error: function (xhr) {
+                                alert('Error al registrar el pago: ' + xhr.responseText);
+                            }
+                        });
+                    });
+                });
+            </script>
+        </div>
+    </body>
+</html>
